@@ -1,5 +1,5 @@
 // Waybar · https://github.com/Alexays/Waybar/wiki
-// Colors and fonts live in style.css, generated from theme/palette.sh.
+// Colors and fonts live in style.css, generated from themes/<name>/palette.sh.
 {
     "layer": "top",
     "position": "top",

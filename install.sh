@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-#  Avionic installer · a cockpit-instrument Hyprland desktop for Arch Linux
+#  Avionic installer · a themed Hyprland desktop for Arch Linux (Magma, Avionic)
 #
 #  One line:
 #    curl -fsSL https://raw.githubusercontent.com/AlfaPigeon/avionic/main/install.sh | bash
@@ -10,6 +10,7 @@
 #  Options:
 #    --no-packages      skip pacman/AUR, only link configs and apply the theme
 #    --sddm             install and enable the SDDM display manager
+#    --theme NAME       magma (default) or avionic; switch later with scripts/theme.sh
 #    --waybar           use Waybar as the bar instead of Quickshell
 #    --wlogout          also install wlogout (AUR) as the power menu
 #    --shell fish|zsh   install that shell and make it your login shell
@@ -54,6 +55,8 @@ DO_PACKAGES=1
 DO_SDDM=0
 DO_WLOGOUT=0
 DO_WAYBAR=0
+THEME=""                  # empty: keep the saved choice, else the default
+DEFAULT_THEME="magma"
 LOGIN_SHELL=""
 DRY_RUN=0
 ASSUME_YES=0
@@ -80,6 +83,7 @@ Usage: install.sh [options]      (or: curl -fsSL …/install.sh | bash -s -- [op
 
   --no-packages      skip pacman/AUR, only link configs and apply the theme
   --sddm             install and enable the SDDM display manager
+  --theme NAME       magma (default) or avionic; switch later with scripts/theme.sh
   --waybar           use Waybar as the bar instead of Quickshell
   --wlogout          also install wlogout (AUR) as the power menu
   --shell fish|zsh   install that shell and make it your login shell
@@ -127,6 +131,8 @@ parse_args() {
             --no-packages) DO_PACKAGES=0 ;;
             --sddm)        DO_SDDM=1 ;;
             --waybar)      DO_WAYBAR=1 ;;
+            --theme)       THEME="${2:-}"; shift ;;
+            --theme=*)     THEME="${1#*=}" ;;
             --wlogout)     DO_WLOGOUT=1 ;;
             --shell)       LOGIN_SHELL="${2:-}"; shift ;;
             --shell=*)     LOGIN_SHELL="${1#*=}" ;;
@@ -138,6 +144,7 @@ parse_args() {
         shift
     done
     case "$LOGIN_SHELL" in ""|fish|zsh) ;; *) die "--shell must be 'fish' or 'zsh'" ;; esac
+    [[ -z "$THEME" || "$THEME" =~ ^[A-Za-z0-9_-]+$ ]] || die "--theme needs a theme name, e.g. magma or avionic"
 }
 
 preflight() {
@@ -153,7 +160,7 @@ preflight() {
     local self="${BASH_SOURCE[0]:-}" here
     if [[ -n "$self" && -f "$self" ]]; then
         here="$(cd "$(dirname "$self")" && pwd)"
-        [[ -f "$here/theme/palette.sh" && -f "$here/scripts/links.conf" ]] && DOTS_DIR="$here"
+        [[ -d "$here/themes" && -f "$here/scripts/links.conf" ]] && DOTS_DIR="$here"
     fi
     DOTS_DIR="${DOTS_DIR:-$DATA_HOME/$NAME}"
 
@@ -180,7 +187,7 @@ show_plan() {
         item "Skip packages (--no-packages)"
     fi
     item "Get the dotfiles in $DOTS_DIR"
-    item "Render the theme (scripts/apply-theme.sh)"
+    item "Render the theme: ${THEME:-saved choice, or $DEFAULT_THEME} (scripts/apply-theme.sh)"
     item "Back up existing configs to $BACKUP_ROOT/<timestamp>/ and symlink ours"
     if ((DO_WAYBAR)); then item "Use Waybar as the bar (--waybar)"; else item "Use the Quickshell bar"; fi
     item "Enable PipeWire (user) and NetworkManager + Bluetooth (system)"
@@ -260,12 +267,22 @@ render_theme() {
         ((DRY_RUN)) && { info "[dry-run] scripts/apply-theme.sh"; return 0; }
         die "missing $DOTS_DIR/scripts/apply-theme.sh"
     fi
-    if ((DRY_RUN)); then
-        run "$DOTS_DIR/scripts/apply-theme.sh"
-        "$DOTS_DIR/scripts/apply-theme.sh" --check | sed 's/^/    /'
-    else
-        "$DOTS_DIR/scripts/apply-theme.sh" | sed 's/^/    /'
+    # --theme wins; otherwise keep what scripts/theme.sh saved; otherwise the default.
+    local theme="$THEME"
+    [[ -n "$theme" ]] || theme="$(head -n1 "$STATE_DIR/theme" 2>/dev/null || true)"
+    if [[ -z "$theme" || ! -f "$DOTS_DIR/themes/$theme/palette.sh" ]]; then
+        [[ -z "$THEME" ]] || die "unknown theme '$THEME' (see $DOTS_DIR/themes/)"
+        theme="$DEFAULT_THEME"
     fi
+    run mkdir -p "$STATE_DIR"
+    if ((DRY_RUN)); then
+        run "$DOTS_DIR/scripts/apply-theme.sh" --theme "$theme"
+        "$DOTS_DIR/scripts/apply-theme.sh" --check --theme "$theme" | sed 's/^/    /'
+    else
+        printf '%s\n' "$theme" >"$STATE_DIR/theme"
+        "$DOTS_DIR/scripts/apply-theme.sh" --theme "$theme" | sed 's/^/    /'
+    fi
+    ok "theme: $theme (switch any time: $DOTS_DIR/scripts/theme.sh list)"
 }
 
 # Move an existing target into this run's backup folder (created on first use).
@@ -400,14 +417,14 @@ finish() {
     fi
     printf '\n%s%s is installed.%s\n' "$C_BOLD" "$PRETTY_NAME" "$C_RESET"
     info "Start Hyprland: log out and choose Hyprland in SDDM, or type 'start-hyprland' on a TTY."
-    info "Keybinds: SUPER + F1   ·   Theme: $DOTS_DIR/theme/palette.sh"
+    info "Keybinds: SUPER + F1   ·   Themes: $DOTS_DIR/scripts/theme.sh list"
     info "Machine-specific settings: ~/.config/hypr/user.lua"
     info "Undo: $DOTS_DIR/uninstall.sh"
 }
 
 main() {
     parse_args "$@"
-    printf '%s%s%s · a cockpit-instrument Hyprland desktop for Arch Linux\n' "$C_BOLD" "$PRETTY_NAME" "$C_RESET"
+    printf '%s%s%s · a themed Hyprland desktop for Arch Linux\n' "$C_BOLD" "$PRETTY_NAME" "$C_RESET"
     preflight
     show_plan
     install_packages

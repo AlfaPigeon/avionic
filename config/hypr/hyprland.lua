@@ -3,7 +3,7 @@
 --  Docs: https://wiki.hypr.land/Configuring/
 --
 --  Colors, gaps, fonts and cursor come from ./theme.lua, which is generated
---  from theme/palette.sh by scripts/apply-theme.sh. Do not hard-code colors here.
+--  from themes/<name>/palette.sh by scripts/apply-theme.sh. Do not hard-code colors here.
 --
 --  Machine-specific tweaks (monitors, extra binds, layouts…) go in
 --  ~/.config/hypr/user.lua. It is git-ignored and loaded last, if it exists.
@@ -30,12 +30,13 @@ local mainMod = "SUPER"
 ---- THEME ----
 ---------------
 
--- Fallback values keep Hyprland usable if apply-theme has not run yet.
+-- Fallback values (Magma, the default theme) keep Hyprland usable if
+-- apply-theme has not run yet.
 local ok, theme = pcall(require, "theme")
 if not ok or type(theme) ~= "table" or not theme.accent then
     theme = {
-        bg = "0c0e11", bg_alt = "101317", surface = "15191e", overlay = "232a31",
-        accent = "ffb347", font_ui = "IBM Plex Sans",
+        bg = "0b0912", bg_alt = "100d1a", surface = "181426", overlay = "2a2340",
+        accent = "de4968", font_ui = "IBM Plex Mono",
         radius = 0, border = 1, gaps_in = 4, gaps_out = 8,
         cursor_theme = "Adwaita", cursor_size = 24,
     }

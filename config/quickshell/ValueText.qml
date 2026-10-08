@@ -1,4 +1,4 @@
-// Value: JetBrainsMono 11px in text color.
+// Value: the theme's mono font, 11px, text color.
 import QtQuick
 
 Text {

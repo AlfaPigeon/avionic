@@ -1,6 +1,6 @@
 // NET <interface> from NetworkManager (Quickshell.Networking); "off" in muted
-// when nothing is connected. The readout is right-aligned in a fixed 87px slot
-// (as in the mockup) so the gauges don't shift as names change.
+// when nothing is connected. The readout is right-aligned in a fixed slot
+// (as in the mockups) so the gauges don't shift as names change.
 // Click opens nm-connection-editor.
 import QtQuick
 import Quickshell
@@ -8,6 +8,8 @@ import Quickshell.Networking
 
 Clickable {
     id: net
+
+    property int slot: 87
 
     readonly property var devices: Networking.devices.values
     readonly property var device: {
@@ -18,7 +20,7 @@ Clickable {
     onClicked: Quickshell.execDetached(["nm-connection-editor"])
 
     Item {
-        implicitWidth: Math.max(87, row.implicitWidth)
+        implicitWidth: Math.max(net.slot, row.implicitWidth)
         implicitHeight: parent.height
 
         Row {

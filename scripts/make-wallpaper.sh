@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 # OPTIONAL: generate a simple abstract wallpaper from the palette (needs ImageMagick).
-# The default wallpaper is Designer's assets/wallpapers/avionic.png; this is only
-# for experimenting with other palettes.
+# Each theme ships Designer's wallpaper (themes/<name>/wallpaper.png); this is only
+# for experimenting with other palettes. Uses themes/$AVIONIC_THEME (default avionic).
 #   scripts/make-wallpaper.sh [output.png] [WIDTHxHEIGHT]
-# Default output: assets/wallpapers/generated.png (git-ignored) at 3840x2160.
+# Default output: themes/<name>/generated.png (git-ignored) at 3840x2160.
 set -euo pipefail
 
 DOTS_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
-out="${1:-$DOTS_DIR/assets/wallpapers/generated.png}"
+theme="${AVIONIC_THEME:-avionic}"
+out="${1:-$DOTS_DIR/themes/$theme/generated.png}"
 size="${2:-3840x2160}"
 w="${size%x*}"; h="${size#*x}"
 
-# shellcheck source=SCRIPTDIR/../theme/palette.sh
-source "$DOTS_DIR/theme/palette.sh"
+# shellcheck source=SCRIPTDIR/../themes/avionic/palette.sh
+source "$DOTS_DIR/themes/$theme/palette.sh"
 
 if command -v magick >/dev/null 2>&1; then im=(magick); else im=(convert); fi
 command -v "${im[0]}" >/dev/null 2>&1 || { echo "ImageMagick not found" >&2; exit 1; }
