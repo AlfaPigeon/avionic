@@ -18,10 +18,13 @@ MANIFEST="$DOTS_DIR/scripts/links.conf"
 DRY_RUN=0
 ASSUME_YES=0
 
-say()  { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
+# Colors only on a terminal, so piped output stays plain.
+if [[ -t 1 ]]; then C_ACC=$'\033[1;38;5;215m' C_WARN=$'\033[33m' C_ERR=$'\033[31m' C_RESET=$'\033[0m'
+else C_ACC="" C_WARN="" C_ERR="" C_RESET=""; fi
+say()  { printf '%s==>%s %s\n' "$C_ACC" "$C_RESET" "$*"; }
 info() { printf '    %s\n' "$*"; }
-warn() { printf '    \033[33m!\033[0m %s\n' "$*" >&2; }
-die()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+warn() { printf '    %s!%s %s\n' "$C_WARN" "$C_RESET" "$*" >&2; }
+die()  { printf '%serror:%s %s\n' "$C_ERR" "$C_RESET" "$*" >&2; exit 1; }
 run()  { if ((DRY_RUN)); then printf '    [dry-run] %s\n' "$*"; else "$@"; fi; }
 
 while (($#)); do
