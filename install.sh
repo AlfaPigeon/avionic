@@ -354,7 +354,7 @@ choose_bar() {
     if ((DO_WAYBAR)); then bar=waybar; fi
     run mkdir -p "$STATE_DIR"
     if ((!DRY_RUN)); then printf '%s\n' "$bar" >"$STATE_DIR/bar"; fi
-    ok "bar: $bar (change with: install.sh --waybar, or AVIONIC_BAR=…)"
+    ok "bar: $bar (re-run the installer with or without --waybar to switch)"
 }
 
 setup_sddm() {
