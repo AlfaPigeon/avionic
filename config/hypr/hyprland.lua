@@ -81,7 +81,7 @@ hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpaper")
-    hl.exec_cmd("waybar")
+    hl.exec_cmd(scripts .. "/bar.sh start")      -- Quickshell, or Waybar if installed with --waybar
     hl.exec_cmd("swaync")
     hl.exec_cmd("swayosd-server")
     hl.exec_cmd("hypridle")
@@ -227,7 +227,7 @@ bind(key("F1"),             exec(scripts .. "/keybinds.sh"),         "Show keybi
 bind(key("L"),              exec("loginctl lock-session"),           "Lock screen")
 bind(key("Escape"),         exec(scripts .. "/powermenu.sh"),        "Power menu")
 bind(key("SHIFT + R"),      exec("hyprctl reload"),                  "Reload Hyprland config")
-bind(key("SHIFT + B"),      exec("pkill -x waybar; waybar"),         "Restart Waybar")
+bind(key("SHIFT + B"),      exec(scripts .. "/bar.sh restart"),      "Restart the bar")
 
 -- Windows
 bind(key("Q"),              hl.dsp.window.close(),                               "Close window")

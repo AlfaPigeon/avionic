@@ -10,6 +10,7 @@
 #  Options:
 #    --no-packages      skip pacman/AUR, only link configs and apply the theme
 #    --sddm             install and enable the SDDM display manager
+#    --waybar           use Waybar as the bar instead of Quickshell
 #    --wlogout          also install wlogout (AUR) as the power menu
 #    --shell fish|zsh   install that shell and make it your login shell
 #    --dry-run          print every action without changing anything
@@ -35,7 +36,8 @@ BACKUP_ROOT="$STATE_DIR/backups"
 PKGS_HYPR=(hyprland hyprlock hypridle hyprpaper hyprpicker hyprpolkitagent
            hyprland-guiutils hyprland-qt-support
            xdg-desktop-portal-hyprland xdg-desktop-portal-gtk)
-PKGS_SHELL=(waybar rofi swaync swayosd libnotify)
+# quickshell (extra) draws the bar; upower feeds its battery gauge.
+PKGS_SHELL=(quickshell upower rofi swaync swayosd libnotify)
 PKGS_APPS=(kitty thunar thunar-volman thunar-archive-plugin tumbler gvfs file-roller
            pavucontrol btop)
 PKGS_TOOLS=(grim slurp swappy wl-clipboard cliphist jq playerctl brightnessctl
@@ -51,6 +53,7 @@ AUR_PKGS=()
 DO_PACKAGES=1
 DO_SDDM=0
 DO_WLOGOUT=0
+DO_WAYBAR=0
 LOGIN_SHELL=""
 DRY_RUN=0
 ASSUME_YES=0
@@ -77,6 +80,7 @@ Usage: install.sh [options]      (or: curl -fsSL …/install.sh | bash -s -- [op
 
   --no-packages      skip pacman/AUR, only link configs and apply the theme
   --sddm             install and enable the SDDM display manager
+  --waybar           use Waybar as the bar instead of Quickshell
   --wlogout          also install wlogout (AUR) as the power menu
   --shell fish|zsh   install that shell and make it your login shell
   --dry-run          print every action without changing anything
@@ -122,6 +126,7 @@ parse_args() {
         case "$1" in
             --no-packages) DO_PACKAGES=0 ;;
             --sddm)        DO_SDDM=1 ;;
+            --waybar)      DO_WAYBAR=1 ;;
             --wlogout)     DO_WLOGOUT=1 ;;
             --shell)       LOGIN_SHELL="${2:-}"; shift ;;
             --shell=*)     LOGIN_SHELL="${1#*=}" ;;
@@ -153,6 +158,7 @@ preflight() {
     DOTS_DIR="${DOTS_DIR:-$DATA_HOME/$NAME}"
 
     if ((DO_WLOGOUT)); then AUR_PKGS+=(wlogout); fi
+    if ((DO_WAYBAR)); then PKGS_SHELL+=(waybar); fi
     if [[ -n "$LOGIN_SHELL" ]]; then PKGS_TOOLS+=("$LOGIN_SHELL"); fi
     if ((DO_SDDM)); then PKGS_TOOLS+=(sddm); fi
 
@@ -176,6 +182,7 @@ show_plan() {
     item "Get the dotfiles in $DOTS_DIR"
     item "Render the theme (scripts/apply-theme.sh)"
     item "Back up existing configs to $BACKUP_ROOT/<timestamp>/ and symlink ours"
+    if ((DO_WAYBAR)); then item "Use Waybar as the bar (--waybar)"; else item "Use the Quickshell bar"; fi
     item "Enable PipeWire (user) and NetworkManager + Bluetooth (system)"
     ((!DO_SDDM)) || item "Enable SDDM (takes effect on next boot)"
     [[ -z "$LOGIN_SHELL" ]] || item "Change your login shell to $LOGIN_SHELL"
@@ -286,6 +293,7 @@ link_configs() {
         case "$when" in
             always) ;;
             wlogout) ((DO_WLOGOUT)) || continue ;;
+            waybar) ((DO_WAYBAR)) || continue ;;
             fish) [[ "$LOGIN_SHELL" == fish ]] || continue ;;
             *) warn "links.conf: unknown condition '$when' for $src"; continue ;;
         esac
@@ -338,6 +346,15 @@ enable_services() {
     else
         warn "bluetooth.service could not start (no adapter?)"
     fi
+}
+
+# Record which bar scripts/bar.sh starts (Hyprland runs it at login).
+choose_bar() {
+    local bar=quickshell
+    if ((DO_WAYBAR)); then bar=waybar; fi
+    run mkdir -p "$STATE_DIR"
+    if ((!DRY_RUN)); then printf '%s\n' "$bar" >"$STATE_DIR/bar"; fi
+    ok "bar: $bar (change with: install.sh --waybar, or AVIONIC_BAR=…)"
 }
 
 setup_sddm() {
@@ -397,6 +414,7 @@ main() {
     sync_repo
     render_theme
     link_configs
+    choose_bar
     enable_services
     setup_sddm
     setup_shell

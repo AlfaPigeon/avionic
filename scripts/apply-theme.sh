@@ -29,7 +29,7 @@ VALUE_KEYS=(theme_name font_ui font_mono font_size radius border gaps_in gaps_ou
             gtk_theme icon_theme cursor_theme cursor_size wallpaper)
 NUMBER_KEYS=(font_size radius border gaps_in gaps_out cursor_size)
 
-if [[ -t 1 ]]; then c_acc=$'\033[1;36m' c_warn=$'\033[1;33m' c_err=$'\033[1;31m' c_off=$'\033[0m'
+if [[ -t 1 ]]; then c_acc=$'\033[1;38;5;215m' c_warn=$'\033[1;33m' c_err=$'\033[1;31m' c_off=$'\033[0m'
 else c_acc="" c_warn="" c_err="" c_off=""; fi
 say()  { printf '%s::%s %s\n' "$c_acc" "$c_off" "$*"; }
 warn() { printf '%s!!%s %s\n' "$c_warn" "$c_off" "$*" >&2; }
@@ -128,7 +128,7 @@ if ((RELOAD)); then
         hyprctl setcursor "${VARS[cursor_theme]}" "${VARS[cursor_size]}" >/dev/null 2>&1 || true
         hyprctl hyprpaper wallpaper ",${VARS[wallpaper]}" >/dev/null 2>&1 || true
     fi
-    pkill -SIGUSR2 -x waybar 2>/dev/null || true              # waybar: reload style
+    "$DOTS_DIR/scripts/bar.sh" reload >/dev/null 2>&1 || true        # Quickshell (or Waybar) picks up the theme
     if command -v swaync-client >/dev/null; then swaync-client --reload-css >/dev/null 2>&1 || true; fi
     pkill -SIGUSR1 -x kitty 2>/dev/null || true               # kitty: reload config
     if pgrep -x swayosd-server >/dev/null; then               # swayosd: restart to re-read CSS

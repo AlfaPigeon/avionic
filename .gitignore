@@ -4,6 +4,7 @@
 /config/hypr/hyprpaper.conf
 /config/hypr/hyprtoolkit.conf
 /config/waybar/style.css
+/config/quickshell/Theme.qml
 /config/rofi/config.rasi
 /config/rofi/theme.rasi
 /config/swaync/style.css
