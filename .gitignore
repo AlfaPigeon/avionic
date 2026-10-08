@@ -21,3 +21,6 @@
 
 # Optional output of scripts/make-wallpaper.sh
 /assets/wallpapers/generated.png
+
+# qmlls helper Quickshell writes when you use a QML language server
+/config/quickshell/.qmlls.ini
