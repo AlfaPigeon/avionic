@@ -1,76 +1,94 @@
-// Clock readout: a 12-tick ring with a sweeping seconds hand, then HH:MM in
-// mono and the date as a small engraved label.
-pragma ComponentBehavior: Bound
-
+// Centre readout (bar-notes: Center), on the true centre of the screen:
+//   THU 08 OCT  ·ruler·  HH:MM:SS  ·ruler·  UTC+3
+// HH:MM 14px fg weight 500, :SS muted. Rulers start 52px from the centre
+// (as drawn in the mockup). Click opens a month calendar.
 import QtQuick
 import Quickshell
 
-Cell {
+Item {
     id: clock
 
-    ruleLeft: false
-    interactive: false
-    spacing: 10
+    required property var window   // the bar, for the calendar popup
+
+    readonly property real centre: width / 2
+    readonly property int rulerStart: 52
+    readonly property int labelGap: 112   // date / timezone edge from the centre
+    readonly property string zone: {
+        const offset = -time.date.getTimezoneOffset();   // minutes east of UTC
+        if (offset === 0) return "UTC";
+        const sign = offset > 0 ? "+" : "-";
+        const h = Math.floor(Math.abs(offset) / 60), m = Math.abs(offset) % 60;
+        return "UTC" + sign + h + (m ? ":" + String(m).padStart(2, "0") : "");
+    }
+
+    implicitWidth: (labelGap + Math.max(date.implicitWidth, tz.implicitWidth)) * 2 + 24
+    implicitHeight: Theme.barHeight - Theme.border
 
     SystemClock {
         id: time
         precision: SystemClock.Seconds
     }
 
-    // Tick ring: 12 ticks around the edge, a dot orbiting once a minute
-    Item {
-        id: ring
-
-        readonly property real size: 24
-        readonly property real centre: size / 2
-
-        implicitWidth: size
-        implicitHeight: size
-
-        Repeater {
-            model: 12
-
-            Rectangle {
-                id: tick
-
-                required property int index
-                readonly property bool major: index % 3 === 0
-
-                x: ring.centre - width / 2
-                y: 0
-                width: 1
-                height: major ? 4 : 2
-                color: major ? Theme.fgDim : Theme.muted
-                antialiasing: true
-                transform: Rotation {
-                    origin.x: 0.5
-                    origin.y: ring.centre
-                    angle: tick.index * 30
-                }
-            }
-        }
-
-        // Seconds: a 2px dot on an inner orbit
-        Rectangle {
-            readonly property real orbit: ring.centre - 7
-            readonly property real angle: (time.seconds * 6 - 90) * Math.PI / 180
-
-            x: ring.centre + orbit * Math.cos(angle) - width / 2
-            y: ring.centre + orbit * Math.sin(angle) - height / 2
-            width: 3
-            height: 3
-            color: Theme.fg
-        }
-    }
-
-    MonoText {
-        text: Qt.formatDateTime(time.date, "HH:mm")
-        font.pointSize: Theme.fontSize + 1
-        font.weight: Font.Medium
-        font.letterSpacing: 1
+    Clickable {
+        x: date.x
+        width: tz.x + tz.width - date.x
+        height: parent.height
+        hoverMargin: 10
+        onClicked: calendar.toggle()
     }
 
     LabelText {
+        id: date
+        x: clock.centre - clock.labelGap - width + font.letterSpacing   // Qt pads the last glyph too
+        anchors.verticalCenter: parent.verticalCenter
         text: Qt.formatDateTime(time.date, "ddd dd MMM")
+        font.letterSpacing: 1.5
+    }
+
+    TickRuler {
+        direction: -1
+        x: clock.centre - clock.rulerStart - width + 1
+        anchors.verticalCenter: parent.verticalCenter
+    }
+
+    Row {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+
+        Text {
+            text: Qt.formatDateTime(time.date, "HH:mm")
+            font.family: Theme.fontMono
+            font.pixelSize: Theme.clockPx
+            font.weight: Font.Medium
+            color: Theme.fg
+        }
+        Text {
+            text: Qt.formatDateTime(time.date, ":ss")
+            font.family: Theme.fontMono
+            font.pixelSize: Theme.clockPx
+            font.weight: Font.Medium
+            color: Theme.muted
+        }
+    }
+
+    TickRuler {
+        direction: 1
+        x: clock.centre + clock.rulerStart
+        anchors.verticalCenter: parent.verticalCenter
+    }
+
+    LabelText {
+        id: tz
+        x: clock.centre + clock.labelGap
+        anchors.verticalCenter: parent.verticalCenter
+        text: clock.zone
+        font.letterSpacing: 1.5
+    }
+
+    CalendarPopup {
+        id: calendar
+        anchorItem: clock
+        window: clock.window
+        today: time.date
     }
 }

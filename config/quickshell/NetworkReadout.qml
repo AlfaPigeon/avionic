@@ -1,10 +1,12 @@
-// Network state from NetworkManager (Quickshell.Networking).
-// Wi-Fi shows the SSID, wired shows ETH, offline shows a muted glyph.
+// NET <interface> from NetworkManager (Quickshell.Networking); "off" in muted
+// when nothing is connected. The readout is right-aligned in a fixed 87px slot
+// (as in the mockup) so the gauges don't shift as names change.
+// Click opens nm-connection-editor.
 import QtQuick
 import Quickshell
 import Quickshell.Networking
 
-Cell {
+Clickable {
     id: net
 
     readonly property var devices: Networking.devices.values
@@ -12,25 +14,30 @@ Cell {
         const up = devices.filter(d => d.connected);
         return up.find(d => d.type === DeviceType.Wifi) ?? up[0] ?? null;
     }
-    readonly property bool wifi: device !== null && device.type === DeviceType.Wifi
-    readonly property var network: wifi ? (device.networks.values.find(n => n.connected) ?? null) : null
-    readonly property string ssid: network ? network.name : ""
 
-    spacing: 6
     onClicked: Quickshell.execDetached(["nm-connection-editor"])
 
-    MonoText {
-        text: net.device === null ? "󰖪" : net.wifi ? "󰖩" : "󰈀"
-        font.pointSize: Theme.glyphSize
-        color: net.device === null ? Theme.muted : Theme.fgDim
-    }
-    MonoText {
-        text: net.device === null ? "OFFLINE"
-            : net.wifi ? (net.ssid.length > 14 ? net.ssid.slice(0, 13) + "…" : net.ssid || "WIFI")
-            : "ETH"
-        color: net.device === null ? Theme.muted : Theme.fg
-    }
-    LabelText {
-        text: "net"
+    Item {
+        implicitWidth: Math.max(87, row.implicitWidth)
+        implicitHeight: parent.height
+
+        Row {
+            id: row
+            anchors.right: parent.right
+            height: parent.height
+            spacing: 8
+
+            LabelText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "net"
+            }
+            ValueText {
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, 120)
+                elide: Text.ElideRight
+                text: net.device ? net.device.name : "off"
+                color: net.device ? Theme.fg : Theme.muted
+            }
+        }
     }
 }

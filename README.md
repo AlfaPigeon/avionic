@@ -66,22 +66,27 @@ The other tools are Quickshell 0.3.1, hyprlock 0.9, hypridle 0.1.8, hyprpaper 0.
 
 ## The bar
 
-`config/quickshell/` is a small Quickshell config (plain QML, no scripts) that draws one bar per screen:
+`config/quickshell/` is a small Quickshell config (plain QML, no scripts) that draws one 32px bar per screen, laid out like an instrument panel:
+
+```
+— AVIONIC │ 01 [02] 03 04 05 06 07 08 09 │ kitty  ·  ~/projects     THU 08 OCT ╎╎╎│ 10:48:21 │╎╎╎ UTC+3     ◜ CPU 23 ◜ MEM 41 ◜ BAT 78 │ NET wlan0  VOL 62 │ ▫ ▫ ▫ │ ⏻
+```
 
 | Part | What it shows | Mouse |
 | --- | --- | --- |
-| Heading tape | Workspaces 01–10 (more if you use them) on a tick tape. The active one on that screen is amber with a caret and underline; occupied ones are in text color, empty ones muted, urgent ones red | Click to switch, scroll for next/previous |
-| Window title | The focused window, muted | |
-| Clock | A 12-tick ring with a seconds dot, `HH:MM`, and the date | |
-| Gauges | Thin 270° arcs for CPU and memory (from `/proc`) and battery (UPower, hidden on desktops). Track `#232A31`, value in text color, red only when critical (≥ 90% load, ≤ 12% battery) | Click opens btop |
-| Audio | Default output volume (PipeWire) | Scroll to change, right-click to mute, click for pavucontrol |
-| Network | SSID, ETH or OFFLINE (NetworkManager) | Click for nm-connection-editor |
-| Bluetooth | Off / on / connected count (BlueZ) | Click for blueman |
-| Tray | StatusNotifier icons | Click activates, right-click opens the app menu |
-| Notifications | swaync state and count | Click toggles the panel, right-click do-not-disturb |
-| Power | Power menu | Click |
+| Mark | An amber dash and the `AVIONIC` wordmark | |
+| Heading tape | Workspaces 01–09 on a tick ruler (plus a cell for any workspace above 9 that exists). The active one on that screen gets an amber top line, amber number and an amber caret; occupied ones are in text color, empty ones muted, urgent ones red | Click to switch, scroll for next/previous |
+| Window title | The focused window as `class  ·  title` | |
+| Clock | Date, tick rulers, `HH:MM` with dimmed `:SS`, and the UTC offset, on the true centre of the screen | Click for a month calendar |
+| Gauges | Small 270° rings followed by `CPU` and `MEM` (from `/proc`) and `BAT` (UPower, hidden on desktops). Red when CPU or memory is above 90% or the battery below 15%; the battery ring is green while charging | Click opens btop |
+| Network | `NET` and the connected interface, or `off` (NetworkManager) | Click for nm-connection-editor |
+| Audio | `VOL` and the default output volume, or `mute` (PipeWire) | Scroll to change, right-click to mute, click for pavucontrol |
+| Bluetooth | `BT` and the number of connected devices, only while something is connected | Click for blueman |
+| Notifications | `MSG` and the swaync count, only while there are notifications or do-not-disturb is on | Click toggles the panel, right-click do-not-disturb |
+| Tray | StatusNotifier icons, tinted monochrome | Click activates, right-click opens the app menu |
+| Power | Power button in its own square | Click for the power menu |
 
-Colors and fonts come from `config/quickshell/Theme.qml`, which `apply-theme.sh` generates from the palette. `scripts/bar.sh start|restart|reload` starts whichever bar you chose (recorded in `~/.local/state/avionic/bar`; `AVIONIC_BAR=waybar` overrides it). Quickshell also reloads by itself when its files change.
+Amber is used only for the mark and the active workspace. Colors and fonts come from `config/quickshell/Theme.qml`, which `apply-theme.sh` generates from the palette. `scripts/bar.sh start|restart|reload` starts whichever bar you chose (recorded in `~/.local/state/avionic/bar`; `AVIONIC_BAR=waybar` overrides it). Quickshell also reloads by itself when its files change.
 
 ## Keybinds
 

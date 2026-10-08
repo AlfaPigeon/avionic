@@ -1,79 +1,76 @@
-// A thin 270° arc gauge with the value inside and a label beside it.
-// Track in the rule color, value in text color, red only when critical.
-// Amber is deliberately not used here.
+// Arc gauge (bar-notes: Right 1): 16px ring, 270° sweep from bottom-left,
+// 2px stroke, track in `overlay`, fill in `fg` (or a given color). Then the
+// label (10px muted) and a two-digit value (11px fg). Red when critical.
+// Columns as in the mockup: label 22px and value 52px from the ring's left edge.
 import QtQuick
-import QtQuick.Layouts
 import QtQuick.Shapes
 
-RowLayout {
+Item {
     id: gauge
 
     property string label: ""
-    property real value: 0          // 0..1
+    property real value: 0                 // 0..1
     property bool critical: false
-    property string valueText: Math.round(Math.max(0, Math.min(1, value)) * 100)
-    readonly property color valueColor: critical ? Theme.urgent : Theme.fg
+    property color fill: Theme.fg
+    readonly property real clamped: Math.max(0, Math.min(1, value))
+    readonly property color shown: critical ? Theme.urgent : fill
 
-    spacing: 5
+    implicitWidth: 52 + reading.implicitWidth
+    implicitHeight: Theme.barHeight - Theme.border
 
-    Item {
-        id: dial
+    Shape {
+        id: ring
 
-        readonly property real size: 24
-        readonly property real stroke: 1.5
-        readonly property real r: (size - stroke) / 2
+        readonly property real size: 16
+        readonly property real stroke: 2
 
-        implicitWidth: size
-        implicitHeight: size
+        anchors.verticalCenter: parent.verticalCenter
+        width: size
+        height: size
+        preferredRendererType: Shape.CurveRenderer
 
-        Shape {
-            anchors.fill: parent
-            preferredRendererType: Shape.CurveRenderer
-
-            // Track
-            ShapePath {
-                fillColor: "transparent"
-                strokeColor: Theme.overlay
-                strokeWidth: dial.stroke
-                capStyle: ShapePath.FlatCap
-                PathAngleArc {
-                    centerX: dial.size / 2
-                    centerY: dial.size / 2
-                    radiusX: dial.r
-                    radiusY: dial.r
-                    startAngle: 135
-                    sweepAngle: 270
-                }
-            }
-
-            // Value
-            ShapePath {
-                fillColor: "transparent"
-                strokeColor: gauge.valueColor
-                strokeWidth: dial.stroke
-                capStyle: ShapePath.FlatCap
-                PathAngleArc {
-                    centerX: dial.size / 2
-                    centerY: dial.size / 2
-                    radiusX: dial.r
-                    radiusY: dial.r
-                    startAngle: 135
-                    sweepAngle: 270 * Math.max(0, Math.min(1, gauge.value))
-                }
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: Theme.overlay
+            strokeWidth: ring.stroke
+            capStyle: ShapePath.FlatCap
+            PathAngleArc {
+                centerX: ring.size / 2
+                centerY: ring.size / 2
+                radiusX: ring.size / 2
+                radiusY: ring.size / 2
+                startAngle: 135
+                sweepAngle: 270
             }
         }
 
-        MonoText {
-            anchors.centerIn: parent
-            anchors.verticalCenterOffset: 1
-            text: gauge.valueText
-            font.pointSize: Theme.labelSize
-            color: gauge.valueColor
+        ShapePath {
+            fillColor: "transparent"
+            strokeColor: gauge.shown
+            strokeWidth: ring.stroke
+            capStyle: ShapePath.FlatCap
+            PathAngleArc {
+                centerX: ring.size / 2
+                centerY: ring.size / 2
+                radiusX: ring.size / 2
+                radiusY: ring.size / 2
+                startAngle: 135
+                sweepAngle: 270 * gauge.clamped
+            }
         }
     }
 
     LabelText {
+        x: 22
+        anchors.verticalCenter: parent.verticalCenter
         text: gauge.label
-        visible: text.length > 0
+    }
+
+    ValueText {
+        id: reading
+        x: 52
+        anchors.verticalCenter: parent.verticalCenter
+        text: String(Math.round(gauge.clamped * 100)).padStart(2, "0")
+        color: gauge.critical ? Theme.urgent : Theme.fg
     }
 }

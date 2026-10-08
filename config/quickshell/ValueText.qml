@@ -1,9 +1,9 @@
-// Readout text: JetBrainsMono Nerd Font, also used for nerd-font glyphs.
+// Value: JetBrainsMono 11px in text color.
 import QtQuick
 
 Text {
     font.family: Theme.fontMono
-    font.pointSize: Theme.readoutSize
+    font.pixelSize: Theme.valuePx
     color: Theme.fg
     verticalAlignment: Text.AlignVCenter
 }

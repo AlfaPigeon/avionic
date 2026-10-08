@@ -1,44 +1,46 @@
-// Default output volume via PipeWire. Scroll to change, right-click to mute,
-// click for pavucontrol.
+// VOL <percent> for the default output (PipeWire); "mute" in muted.
+// Scroll changes volume, click opens the mixer, right click toggles mute.
 import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
 
-Cell {
+Clickable {
     id: audio
 
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property bool ready: sink !== null && sink.audio !== null
     readonly property bool muted: ready && sink.audio.muted
-    readonly property real volume: ready ? sink.audio.volume : 0
 
-    visible: ready
-    spacing: 6
-
-    // Properties of a node are only live while something tracks it.
+    // A node's properties are only live while something tracks it.
     PwObjectTracker {
         objects: [audio.sink]
     }
 
     onClicked: event => {
-        if (event.button === Qt.RightButton) sink.audio.muted = !sink.audio.muted;
-        else Quickshell.execDetached(["pavucontrol"]);
+        if (event.button === Qt.RightButton) {
+            if (ready) sink.audio.muted = !sink.audio.muted;
+        } else {
+            Quickshell.execDetached(["pavucontrol"]);
+        }
     }
     onScrolled: event => {
+        if (!ready) return;
         const step = event.angleDelta.y > 0 ? 0.05 : -0.05;
         sink.audio.volume = Math.max(0, Math.min(1.5, sink.audio.volume + step));
     }
 
-    MonoText {
-        text: audio.muted ? "󰖁" : audio.volume < 0.34 ? "󰕿" : audio.volume < 0.67 ? "󰖀" : "󰕾"
-        font.pointSize: Theme.glyphSize
-        color: Theme.muted
-    }
-    MonoText {
-        text: audio.muted ? "MUTE" : Math.round(audio.volume * 100)
-        color: audio.muted ? Theme.muted : Theme.fg
-    }
-    LabelText {
-        text: "vol"
+    Row {
+        height: parent.height
+        spacing: 8
+
+        LabelText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "vol"
+        }
+        ValueText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: !audio.ready ? "--" : audio.muted ? "mute" : Math.round(audio.sink.audio.volume * 100)
+            color: audio.ready && !audio.muted ? Theme.fg : Theme.muted
+        }
     }
 }

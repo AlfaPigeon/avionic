@@ -1,19 +1,17 @@
-// Notification state from swaync (swaync-client -swb streams one JSON line per
-// change). Click toggles the panel, right click toggles do-not-disturb.
+// MSG <n> / MSG dnd from swaync (swaync-client -swb streams one JSON line per
+// change). Only shown when there is something to report, so the resting bar
+// matches the mockup. Click toggles the panel, right click do-not-disturb.
 import QtQuick
 import Quickshell
 import Quickshell.Io
 
-Cell {
+Clickable {
     id: notif
 
     property int count: 0
     property bool dnd: false
-    property bool available: false
 
-    visible: available
-    spacing: 6
-
+    visible: count > 0 || dnd
     onClicked: event => Quickshell.execDetached(["swaync-client", event.button === Qt.RightButton ? "-d" : "-t", "-sw"])
 
     Process {
@@ -26,7 +24,6 @@ Cell {
                     const state = JSON.parse(line);
                     notif.count = Number(state.text) || 0;
                     notif.dnd = String(state.alt).startsWith("dnd");
-                    notif.available = true;
                 } catch (e) {
                     // ignore partial or non-JSON lines
                 }
@@ -35,7 +32,8 @@ Cell {
         // swaync may start after the bar, or restart: try again shortly.
         onRunningChanged: {
             if (running) return;
-            notif.available = false;
+            notif.count = 0;
+            notif.dnd = false;
             retry.start();
         }
     }
@@ -46,13 +44,18 @@ Cell {
         onTriggered: watch.running = true
     }
 
-    MonoText {
-        text: notif.dnd ? "󰂛" : notif.count > 0 ? "󱅫" : "󰂚"
-        font.pointSize: Theme.glyphSize
-        color: notif.count > 0 && !notif.dnd ? Theme.fg : Theme.muted
-    }
-    MonoText {
-        text: notif.count
-        visible: notif.count > 0
+    Row {
+        height: parent.height
+        spacing: 8
+
+        LabelText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "msg"
+        }
+        ValueText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: notif.dnd ? "dnd" : notif.count
+            color: notif.dnd ? Theme.muted : Theme.fg
+        }
     }
 }

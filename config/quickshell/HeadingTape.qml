@@ -1,15 +1,18 @@
-// Workspaces as an aircraft heading tape: a strip of ticks with two-digit
-// numbers. The active workspace on this screen is the one amber readout
-// (number, caret above, underline below). Occupied workspaces read in text
-// color, empty ones muted, urgent ones red.
+// Workspaces as an aircraft heading tape (bar-notes: Left 2).
+// Always 01-09, 34px per cell; workspaces above 9 that exist get extra cells.
+//   empty: muted · occupied: fg · urgent: urgent red
+//   active (this screen): surface fill, 2px amber line on top, amber number
+//   at weight 600 and an 8x5 amber caret pointing up from the bottom edge.
+// Ticks along the bottom: 5px at each cell boundary, 2px at each centre.
 //
 // Switching: HyprlandWorkspace.activate() is Lua-aware in Quickshell >= 0.3
 // (it sends hl.dsp.focus({ workspace = "N" }) when Hyprland's configProvider
-// is lua). Workspaces that don't exist yet go through goTo(), which builds the
-// same Lua dispatch itself.
+// is lua). Workspaces that don't exist yet, and scrolling, go through
+// dispatchFocus(), which builds the same dispatch itself.
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Hyprland
 
@@ -20,13 +23,14 @@ Item {
     readonly property HyprlandMonitor monitor: screen ? Hyprland.monitorFor(screen) : null
     readonly property int activeId: monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : -1
     readonly property var workspaces: Hyprland.workspaces.values
-    readonly property int count: {
-        let highest = 10;
+    readonly property var ids: {
+        const list = [1, 2, 3, 4, 5, 6, 7, 8, 9];
         for (const ws of workspaces)
-            if (ws.id > highest) highest = ws.id;
-        return highest;
+            if (ws.id > 9) list.push(ws.id);
+        return list.sort((a, b) => a - b);
     }
-    readonly property int cellWidth: 30
+    readonly property int cell: Theme.tapeCell
+    readonly property int tickBottom: Theme.barHeight - Theme.border
 
     function workspace(id) {
         return workspaces.find(ws => ws.id === id) ?? null;
@@ -46,109 +50,112 @@ Item {
         else dispatchFocus(id);
     }
 
-    implicitWidth: count * cellWidth + 16
-    implicitHeight: Theme.barHeight
+    implicitWidth: ids.length * cell + 1
+    implicitHeight: tickBottom
 
-    // Right-hand rule closing the tape
-    Rectangle {
-        anchors.right: parent.right
-        width: Theme.border
-        height: parent.height
-        color: Theme.overlay
-    }
+    Repeater {
+        model: tape.ids
 
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.NoButton
-        onWheel: event => tape.dispatchFocus(event.angleDelta.y < 0 ? "e+1" : "e-1")
-    }
+        Item {
+            id: mark
 
-    Row {
-        x: 8
-        height: parent.height
+            required property int modelData
+            required property int index
+            readonly property HyprlandWorkspace ws: tape.workspace(modelData)
+            readonly property bool active: modelData === tape.activeId
+            readonly property bool occupied: ws !== null && ws.toplevels.values.length > 0
+            readonly property bool urgent: ws !== null && ws.urgent
 
-        Repeater {
-            model: tape.count
+            x: index * tape.cell
+            width: tape.cell
+            height: tape.tickBottom
 
-            Item {
-                id: mark
-
-                required property int index
-                readonly property int wsId: index + 1
-                readonly property HyprlandWorkspace ws: tape.workspace(wsId)
-                readonly property bool active: wsId === tape.activeId
-                readonly property bool occupied: ws !== null && ws.toplevels.values.length > 0
-                readonly property bool urgent: ws !== null && ws.urgent
-
-                width: tape.cellWidth
+            // Hover / active fill (1px inset so the boundary ticks stay visible)
+            Rectangle {
+                x: 1
+                width: parent.width - 2
                 height: parent.height
+                color: Theme.surface
+                opacity: mark.active || hover.containsMouse ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: Theme.hoverMs } }
+            }
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: Theme.surface
-                    visible: hover.containsMouse || mark.active
-                }
+            // Amber line on the top edge
+            Rectangle {
+                x: 1
+                width: parent.width - 2
+                height: 2
+                color: Theme.accent
+                visible: mark.active
+            }
 
-                // Tape graduations: minor ticks at the edge and quarters,
-                // a major tick (or the amber caret) at the center.
-                Repeater {
-                    model: [0, 0.25, 0.75]
+            Text {
+                anchors.centerIn: parent
+                text: String(mark.modelData).padStart(2, "0")
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.valuePx
+                font.weight: mark.active ? Font.DemiBold : Font.Normal
+                color: mark.active ? Theme.accent
+                     : mark.urgent ? Theme.urgent
+                     : mark.occupied ? Theme.fg
+                     : Theme.muted
+            }
 
-                    Rectangle {
-                        required property real modelData
+            // Boundary tick (left edge) and centre tick
+            Rectangle {
+                x: 0
+                y: tape.tickBottom - 5
+                width: 1
+                height: 5
+                color: Theme.overlay
+            }
+            Rectangle {
+                x: Math.floor(parent.width / 2)
+                y: tape.tickBottom - 2
+                width: 1
+                height: 2
+                color: Theme.overlay
+                visible: !mark.active
+            }
 
-                        x: Math.round(mark.width * modelData)
-                        y: 0
-                        width: 1
-                        height: modelData === 0 ? 4 : 2
-                        color: Theme.muted
-                        opacity: 0.55
-                    }
-                }
-                Rectangle {
-                    x: Math.round(parent.width / 2)
-                    y: 0
-                    width: 1
-                    height: 6
-                    color: Theme.muted
-                    visible: !mark.active
-                }
-                Caret {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    y: 0
-                    visible: mark.active
-                    color: Theme.accent
-                }
+            // Amber caret pointing up from the bottom edge
+            Shape {
+                x: Math.floor(parent.width / 2) - 4
+                y: tape.tickBottom - 5
+                width: 8
+                height: 5
+                visible: mark.active
+                preferredRendererType: Shape.CurveRenderer
 
-                MonoText {
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: 2
-                    text: String(mark.wsId).padStart(2, "0")
-                    font.weight: mark.active ? Font.Bold : Font.Normal
-                    color: mark.urgent ? Theme.urgent
-                         : mark.active ? Theme.accent
-                         : mark.occupied ? Theme.fg
-                         : Theme.muted
-                }
-
-                // Amber underline on the active workspace, red on an urgent one
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width
-                    height: 2
-                    color: mark.urgent ? Theme.urgent : Theme.accent
-                    visible: mark.active || mark.urgent
-                }
-
-                MouseArea {
-                    id: hover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: tape.goTo(mark.wsId)
-                    onWheel: event => tape.dispatchFocus(event.angleDelta.y < 0 ? "e+1" : "e-1")
+                ShapePath {
+                    strokeWidth: 0
+                    strokeColor: "transparent"
+                    fillColor: Theme.accent
+                    startX: 0
+                    startY: 5
+                    PathLine { x: 4; y: 0 }
+                    PathLine { x: 8; y: 5 }
+                    PathLine { x: 0; y: 5 }
                 }
             }
+
+            MouseArea {
+                id: hover
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: tape.goTo(mark.modelData)
+                onWheel: event => tape.dispatchFocus(event.angleDelta.y < 0 ? "e+1" : "e-1")
+            }
         }
+    }
+
+    // Closing boundary tick
+    Rectangle {
+        x: tape.ids.length * tape.cell
+        y: tape.tickBottom - 5
+        width: 1
+        height: 5
+        color: Theme.overlay
     }
 }
