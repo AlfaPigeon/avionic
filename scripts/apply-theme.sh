@@ -29,16 +29,18 @@ VALUE_KEYS=(theme_name font_ui font_mono font_size radius border gaps_in gaps_ou
             gtk_theme icon_theme cursor_theme cursor_size wallpaper)
 NUMBER_KEYS=(font_size radius border gaps_in gaps_out cursor_size)
 
-say()  { printf '\033[1;36m::\033[0m %s\n' "$*"; }
-warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
-die()  { printf '\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
+if [[ -t 1 ]]; then c_acc=$'\033[1;36m' c_warn=$'\033[1;33m' c_err=$'\033[1;31m' c_off=$'\033[0m'
+else c_acc="" c_warn="" c_err="" c_off=""; fi
+say()  { printf '%s::%s %s\n' "$c_acc" "$c_off" "$*"; }
+warn() { printf '%s!!%s %s\n' "$c_warn" "$c_off" "$*" >&2; }
+die()  { printf '%sxx%s %s\n' "$c_err" "$c_off" "$*" >&2; exit 1; }
 
 while (($#)); do
     case "$1" in
         --reload) RELOAD=1 ;;
         --check) CHECK=1 ;;
         --palette) PALETTE="$(readlink -f "${2:?--palette needs a file}")"; shift ;;
-        -h|--help) sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^#  \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '3,12p' "${BASH_SOURCE[0]}" | sed -E 's/^# {0,2}//'; exit 0 ;;
         *) die "unknown option: $1" ;;
     esac
     shift

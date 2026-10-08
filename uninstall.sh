@@ -27,7 +27,7 @@ while (($#)); do
     case "$1" in
         --dry-run) DRY_RUN=1 ;;
         -y|--yes) ASSUME_YES=1 ;;
-        -h|--help) sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^#  \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n '3,8p' "${BASH_SOURCE[0]}" | sed -E 's/^# {0,2}//'; exit 0 ;;
         *) die "unknown option: $1" ;;
     esac
     shift
