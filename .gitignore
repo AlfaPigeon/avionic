@@ -17,3 +17,6 @@
 
 # Machine-specific Hyprland overrides
 /config/hypr/user.lua
+
+# Optional output of scripts/make-wallpaper.sh
+/assets/wallpapers/generated.png

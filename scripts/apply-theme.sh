@@ -24,7 +24,7 @@ CHECK=0
 
 # Every key a palette must define. Designer's palette fills exactly these.
 COLOR_KEYS=(bg bg_alt surface overlay fg fg_dim muted accent accent_alt urgent warning success
-            ansi_magenta ansi_cyan)
+            ansi_yellow ansi_magenta ansi_cyan)
 VALUE_KEYS=(theme_name font_ui font_mono font_size radius border gaps_in gaps_out
             gtk_theme icon_theme cursor_theme cursor_size wallpaper)
 NUMBER_KEYS=(font_size radius border gaps_in gaps_out cursor_size)

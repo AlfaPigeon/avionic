@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════════════════════════════
---  Hyprland config  ·  targets Hyprland 0.56 (Lua config)
+--  Avionic · Hyprland config  ·  targets Hyprland 0.56 (Lua config)
 --  Docs: https://wiki.hypr.land/Configuring/
 --
 --  Colors, gaps, fonts and cursor come from ./theme.lua, which is generated
@@ -34,9 +34,9 @@ local mainMod = "SUPER"
 local ok, theme = pcall(require, "theme")
 if not ok or type(theme) ~= "table" or not theme.accent then
     theme = {
-        bg = "0f1115", bg_alt = "15181e", overlay = "2a303b", accent = "6ec8f2",
-        accent_alt = "3b8bb5", urgent = "e5646e", font_ui = "Sans",
-        radius = 10, border = 2, gaps_in = 4, gaps_out = 10,
+        bg = "0c0e11", bg_alt = "101317", surface = "15191e", overlay = "232a31",
+        accent = "ffb347", font_ui = "IBM Plex Sans",
+        radius = 0, border = 1, gaps_in = 4, gaps_out = 8,
         cursor_theme = "Adwaita", cursor_size = 24,
     }
 end
@@ -103,50 +103,36 @@ hl.config({
         gaps_in     = theme.gaps_in,
         gaps_out    = theme.gaps_out,
         border_size = theme.border,
+        -- Amber marks the focused window; everything else is a quiet 1px rule.
         col = {
-            active_border   = { colors = { rgba(theme.accent, "ee"), rgba(theme.accent_alt, "ee") }, angle = 45 },
-            inactive_border = rgba(theme.overlay, "aa"),
+            active_border   = rgba(theme.accent),
+            inactive_border = rgba(theme.overlay),
         },
         resize_on_border = true,
         allow_tearing    = false,
         layout           = "dwindle",
     },
 
+    -- Flat instrument panel: square corners, no shadows, no blur, no transparency.
     decoration = {
-        rounding       = theme.radius,
-        rounding_power = 2.5,
+        rounding         = theme.radius,
         active_opacity   = 1.0,
-        inactive_opacity = 0.97,
-
-        shadow = {
-            enabled      = true,
-            range        = 14,
-            render_power = 3,
-            color          = rgba(theme.bg, "aa"),
-            color_inactive = rgba(theme.bg, "55"),
-        },
-
-        -- Light blur: enough for glassy bars and menus, cheap on GPUs.
-        blur = {
-            enabled  = true,
-            size     = 5,
-            passes   = 2,
-            vibrancy = 0.17,
-            noise    = 0.01,
-            popups   = true,
-        },
+        inactive_opacity = 1.0,
+        shadow = { enabled = false },
+        blur   = { enabled = false },
     },
 
     group = {
         col = {
-            border_active   = rgba(theme.accent, "ee"),
-            border_inactive = rgba(theme.overlay, "aa"),
+            border_active   = rgba(theme.accent),
+            border_inactive = rgba(theme.overlay),
         },
         groupbar = {
             font_family = theme.font_ui,
+            rounding    = theme.radius,
             col = {
-                active   = rgba(theme.accent_alt, "ee"),
-                inactive = rgba(theme.bg_alt, "cc"),
+                active   = rgba(theme.surface),
+                inactive = rgba(theme.bg_alt),
             },
         },
     },
@@ -170,7 +156,7 @@ hl.config({
     cursor = { hide_on_key_press = false },
 })
 
--- Animations: short and smooth, nothing bouncy.
+-- Animations: short and precise, nothing bouncy.
 hl.curve("smooth",   { type = "bezier", points = { {0.25, 1},   {0.5, 1}  } })
 hl.curve("snappy",   { type = "bezier", points = { {0.2, 0.9},  {0.1, 1}  } })
 hl.curve("linear",   { type = "bezier", points = { {0, 0},      {1, 1}    } })
@@ -341,11 +327,7 @@ hl.window_rule({ name = "float-polkit",   match = { class = "^(hyprpolkitagent|p
 hl.window_rule({ name = "float-dialogs",  match = { title = "^(Open File|Save File|Save As|File Operation Progress|Confirm to replace files)$" }, float = true, center = true })
 hl.window_rule({ name = "pip",            match = { title = "^(Picture-in-Picture|Picture in picture)$" }, float = true, pin = true, keep_aspect_ratio = true })
 
--- Glass for shell layers (bar, launcher, notifications, OSD).
-hl.layer_rule({ name = "blur-waybar",  match = { namespace = "^waybar$" },  blur = true, ignore_alpha = 0.2 })
-hl.layer_rule({ name = "blur-rofi",    match = { namespace = "^rofi$" },    blur = true, ignore_alpha = 0.2 })
-hl.layer_rule({ name = "blur-swaync",  match = { namespace = "^swaync-(control-center|notification-window)$" }, blur = true, ignore_alpha = 0.2 })
-hl.layer_rule({ name = "blur-swayosd", match = { namespace = "^swayosd$" }, blur = true, ignore_alpha = 0.2 })
+-- No blur on any layer (bar, launcher, notifications stay solid).
 hl.layer_rule({ name = "no-anim-selection", match = { namespace = "^(selection|hyprpicker)$" }, no_anim = true })
 
 

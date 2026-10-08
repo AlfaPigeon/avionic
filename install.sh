@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-#  hypr-dots installer · Arch Linux + Hyprland desktop
+#  Avionic installer · a cockpit-instrument Hyprland desktop for Arch Linux
 #
 #  One line:
-#    curl -fsSL https://raw.githubusercontent.com/AlfaPigeon/<repo>/main/install.sh | bash
+#    curl -fsSL https://raw.githubusercontent.com/AlfaPigeon/avionic/main/install.sh | bash
 #  With options:
 #    curl -fsSL …/install.sh | bash -s -- --sddm --shell fish
 #
@@ -22,8 +22,9 @@
 set -euo pipefail
 
 # ── Project settings (rename here when the final name is decided) ───────────
-NAME="hypr-dots"
-REPO_URL="${DOTS_REPO_URL:-https://github.com/AlfaPigeon/hypr-dots.git}"
+NAME="avionic"            # slug: clone dir, state dir
+PRETTY_NAME="Avionic"
+REPO_URL="${DOTS_REPO_URL:-https://github.com/AlfaPigeon/avionic}"
 BRANCH="${DOTS_BRANCH:-main}"
 
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -42,7 +43,7 @@ PKGS_TOOLS=(grim slurp swappy wl-clipboard cliphist jq playerctl brightnessctl
 PKGS_AUDIO=(pipewire pipewire-pulse pipewire-alsa wireplumber)
 PKGS_NET=(networkmanager network-manager-applet bluez bluez-utils blueman)
 PKGS_THEME=(qt5-wayland qt6-wayland qt6ct nwg-look adw-gtk-theme papirus-icon-theme
-            adwaita-cursors ttf-jetbrains-mono-nerd inter-font noto-fonts noto-fonts-emoji)
+            adwaita-cursors ttf-jetbrains-mono-nerd ttf-ibm-plex noto-fonts noto-fonts-emoji)
 # AUR packages, only when a flag asks for them (none are needed by default).
 AUR_PKGS=()
 
@@ -60,7 +61,7 @@ TTY_OK=0
 # ── Output helpers ──────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
     C_RESET=$'\033[0m' C_BOLD=$'\033[1m' C_DIM=$'\033[2m'
-    C_ACC=$'\033[38;5;117m' C_OK=$'\033[32m' C_WARN=$'\033[33m' C_ERR=$'\033[31m'
+    C_ACC=$'\033[38;5;215m' C_OK=$'\033[32m' C_WARN=$'\033[33m' C_ERR=$'\033[31m'
 else
     C_RESET="" C_BOLD="" C_DIM="" C_ACC="" C_OK="" C_WARN="" C_ERR=""
 fi
@@ -380,7 +381,7 @@ finish() {
         printf '\n%sDry run complete: nothing was changed.%s\n' "$C_BOLD" "$C_RESET"
         return 0
     fi
-    printf '\n%s%s is installed.%s\n' "$C_BOLD" "$NAME" "$C_RESET"
+    printf '\n%s%s is installed.%s\n' "$C_BOLD" "$PRETTY_NAME" "$C_RESET"
     info "Start Hyprland: log out and choose Hyprland in SDDM, or type 'start-hyprland' on a TTY."
     info "Keybinds: SUPER + F1   ·   Theme: $DOTS_DIR/theme/palette.sh"
     info "Machine-specific settings: ~/.config/hypr/user.lua"
@@ -389,7 +390,7 @@ finish() {
 
 main() {
     parse_args "$@"
-    printf '%s%s%s · Arch Linux + Hyprland desktop\n' "$C_BOLD" "$NAME" "$C_RESET"
+    printf '%s%s%s · a cockpit-instrument Hyprland desktop for Arch Linux\n' "$C_BOLD" "$PRETTY_NAME" "$C_RESET"
     preflight
     show_plan
     install_packages

@@ -3,11 +3,8 @@
 {
     "layer": "top",
     "position": "top",
-    "height": 34,
-    "margin-top": 6,
-    "margin-left": 10,
-    "margin-right": 10,
-    "spacing": 4,
+    "height": 30,
+    "spacing": 0,
     "reload_style_on_change": true,
 
     "modules-left": ["custom/launcher", "ext/workspaces", "hyprland/submap", "hyprland/window"],

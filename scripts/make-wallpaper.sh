@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Generate the placeholder abstract wallpaper from the palette (needs ImageMagick).
+# OPTIONAL: generate a simple abstract wallpaper from the palette (needs ImageMagick).
+# The default wallpaper is Designer's assets/wallpapers/avionic.png; this is only
+# for experimenting with other palettes.
 #   scripts/make-wallpaper.sh [output.png] [WIDTHxHEIGHT]
-# Default: assets/wallpapers/default.png at 3840x2160. Replace with Designer's art later.
+# Default output: assets/wallpapers/generated.png (git-ignored) at 3840x2160.
 set -euo pipefail
 
 DOTS_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
-out="${1:-$DOTS_DIR/assets/wallpapers/default.png}"
+out="${1:-$DOTS_DIR/assets/wallpapers/generated.png}"
 size="${2:-3840x2160}"
 w="${size%x*}"; h="${size#*x}"
 

@@ -9,7 +9,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-NAME="hypr-dots"
+NAME="avionic"
+PRETTY_NAME="Avionic"
 DOTS_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/$NAME"
 BACKUP_ROOT="$STATE_DIR/backups"
@@ -41,7 +42,7 @@ if [[ -d "$BACKUP_ROOT" ]]; then
     latest="$(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
 fi
 
-say "This will remove $NAME's config links${latest:+ and restore $latest}"
+say "This will remove $PRETTY_NAME's config links${latest:+ and restore $latest}"
 if ((!ASSUME_YES)) && { : </dev/tty; } 2>/dev/null; then
     printf '    Continue? [y/N] ' >/dev/tty
     read -r reply </dev/tty || reply=""

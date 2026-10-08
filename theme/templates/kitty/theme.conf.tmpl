@@ -9,26 +9,26 @@ font_size        {{font_size}}
 
 foreground              {{fg}}
 background              {{bg}}
-selection_foreground    {{bg}}
-selection_background    {{accent}}
-cursor                  {{accent}}
+selection_foreground    {{fg}}
+selection_background    {{overlay}}
+cursor                  {{fg}}
 cursor_text_color       {{bg}}
-url_color               {{accent}}
+url_color               {{accent_alt}}
 
-active_border_color     {{accent}}
+active_border_color     {{fg_dim}}
 inactive_border_color   {{overlay}}
-bell_border_color       {{warning}}
+bell_border_color       {{urgent}}
 
-active_tab_foreground   {{bg}}
-active_tab_background   {{accent}}
-inactive_tab_foreground {{fg_dim}}
+active_tab_foreground   {{fg}}
+active_tab_background   {{surface}}
+inactive_tab_foreground {{muted}}
 inactive_tab_background {{bg_alt}}
-tab_bar_background      {{bg}}
+tab_bar_background      {{bg_alt}}
 
 mark1_foreground {{bg}}
-mark1_background {{accent}}
+mark1_background {{fg_dim}}
 
-# 16-color ANSI palette, derived from the theme
+# 16-color ANSI palette, derived from the theme (quiet tones)
 # black
 color0  {{surface}}
 color8  {{muted}}
@@ -39,11 +39,11 @@ color9  {{urgent}}
 color2  {{success}}
 color10 {{success}}
 # yellow
-color3  {{warning}}
-color11 {{warning}}
+color3  {{ansi_yellow}}
+color11 {{ansi_yellow}}
 # blue
 color4  {{accent_alt}}
-color12 {{accent}}
+color12 {{accent_alt}}
 # magenta
 color5  {{ansi_magenta}}
 color13 {{ansi_magenta}}
