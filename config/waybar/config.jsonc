@@ -1,0 +1,154 @@
+// Waybar · https://github.com/Alexays/Waybar/wiki
+// Colors and fonts live in style.css, generated from theme/palette.sh.
+{
+    "layer": "top",
+    "position": "top",
+    "height": 34,
+    "margin-top": 6,
+    "margin-left": 10,
+    "margin-right": 10,
+    "spacing": 4,
+    "reload_style_on_change": true,
+
+    "modules-left": ["custom/launcher", "ext/workspaces", "hyprland/submap", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": [
+        "tray", "cpu", "memory", "wireplumber", "network", "bluetooth", "battery",
+        "custom/notifications", "custom/power"
+    ],
+
+    "custom/launcher": {
+        "format": "",
+        "tooltip": false,
+        "on-click": "rofi -show drun"
+    },
+
+    // ext-workspace protocol: works with Hyprland's Lua config (clicks switch workspaces).
+    "ext/workspaces": {
+        "format": "{name}",
+        "on-click": "activate",
+        "sort-by-id": true,
+        "ignore-hidden": true
+    },
+
+    "hyprland/submap": {
+        "format": "󰩨 {}",
+        "tooltip": false
+    },
+
+    "hyprland/window": {
+        "format": "{title}",
+        "max-length": 48,
+        "separate-outputs": true,
+        "rewrite": { "": "desktop" }
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%a %d %b  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "weeks-pos": "left",
+            "on-scroll": 1,
+            "format": {
+                "months": "<b>{}</b>",
+                "weeks": "<span alpha='60%'>W{}</span>",
+                "weekdays": "<span alpha='70%'>{}</span>",
+                "today": "<b><u>{}</u></b>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    },
+
+    "cpu": {
+        "interval": 3,
+        "format": "󰻠 {usage}%",
+        "tooltip": true,
+        "on-click": "kitty -e btop || kitty -e top"
+    },
+
+    "memory": {
+        "interval": 5,
+        "format": "󰍛 {percentage}%",
+        "tooltip-format": "{used:0.1f} / {total:0.1f} GiB used"
+    },
+
+    "wireplumber": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰖁 muted",
+        "format-icons": ["󰕿", "󰖀", "󰕾"],
+        "scroll-step": 5,
+        "max-volume": 150,
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    },
+
+    "network": {
+        "format-wifi": "󰖩 {signalStrength}%",
+        "format-ethernet": "󰈀",
+        "format-linked": "󰈀 no ip",
+        "format-disconnected": "󰖪",
+        "tooltip-format-wifi": "{essid}  ·  {ipaddr}\n{bandwidthDownBytes} down  {bandwidthUpBytes} up",
+        "tooltip-format-ethernet": "{ifname}  ·  {ipaddr}\n{bandwidthDownBytes} down  {bandwidthUpBytes} up",
+        "tooltip-format-disconnected": "offline",
+        "on-click": "nm-connection-editor"
+    },
+
+    "bluetooth": {
+        "format": "󰂯",
+        "format-disabled": "󰂲",
+        "format-off": "󰂲",
+        "format-connected": "󰂱 {num_connections}",
+        "tooltip-format-connected": "{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "on-click": "blueman-manager"
+    },
+
+    // Hidden automatically when the machine has no battery (desktops).
+    "battery": {
+        "interval": 30,
+        "states": { "warning": 25, "critical": 12 },
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰂄 {capacity}%",
+        "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰂂", "󰁹"],
+        "tooltip-format": "{timeTo}  ·  {power:0.1f} W"
+    },
+
+    "custom/notifications": {
+        "tooltip": false,
+        "format": "{icon}",
+        "format-icons": {
+            "notification": "󱅫",
+            "none": "󰂚",
+            "dnd-notification": "󰂛",
+            "dnd-none": "󰂛",
+            "inhibited-notification": "󱅫",
+            "inhibited-none": "󰂚",
+            "dnd-inhibited-notification": "󰂛",
+            "dnd-inhibited-none": "󰂛"
+        },
+        "return-type": "json",
+        "exec-if": "which swaync-client",
+        "exec": "swaync-client -swb",
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+        "escape": true
+    },
+
+    "custom/power": {
+        "format": "󰐥",
+        "tooltip": false,
+        "on-click": "~/.config/hypr/scripts/powermenu.sh"
+    }
+}

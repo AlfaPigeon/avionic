@@ -1,0 +1,12 @@
+-- Copy to ~/.config/hypr/user.lua (git-ignored) for machine-specific settings.
+-- It is loaded last by hyprland.lua, so anything here wins.
+
+-- Monitors (names from `hyprctl monitors`)
+-- hl.monitor({ output = "DP-1",  mode = "2560x1440@165", position = "0x0",    scale = 1 })
+-- hl.monitor({ output = "eDP-1", mode = "preferred",     position = "2560x0", scale = 1.25 })
+
+-- Turkish keyboard with US as a second layout (Alt+Shift switches)
+-- hl.config({ input = { kb_layout = "tr,us", kb_options = "grp:alt_shift_toggle" } })
+
+-- Extra apps / binds
+-- hl.bind("SUPER + B", hl.dsp.exec_cmd("firefox"), { description = "Browser" })
