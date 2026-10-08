@@ -164,18 +164,20 @@ preflight() {
 
 show_plan() {
     step "Plan"
+    local n=0
+    item() { n=$((n + 1)); info "$n. $*"; }
     if ((DO_PACKAGES)); then
-        info "1. Install/upgrade packages with pacman (--needed)"
+        item "Install/upgrade packages with pacman (--needed)"
         ((${#AUR_PKGS[@]} == 0)) || info "   + AUR: ${AUR_PKGS[*]} (bootstraps yay if no AUR helper)"
     else
-        info "1. Skip packages (--no-packages)"
+        item "Skip packages (--no-packages)"
     fi
-    info "2. Get the dotfiles in $DOTS_DIR"
-    info "3. Render the theme (scripts/apply-theme.sh)"
-    info "4. Back up existing configs to $BACKUP_ROOT/<timestamp>/ and symlink ours"
-    info "5. Enable PipeWire (user) and NetworkManager + Bluetooth (system)"
-    ((!DO_SDDM)) || info "6. Enable SDDM (takes effect on next boot)"
-    [[ -z "$LOGIN_SHELL" ]] || info "7. Change your login shell to $LOGIN_SHELL"
+    item "Get the dotfiles in $DOTS_DIR"
+    item "Render the theme (scripts/apply-theme.sh)"
+    item "Back up existing configs to $BACKUP_ROOT/<timestamp>/ and symlink ours"
+    item "Enable PipeWire (user) and NetworkManager + Bluetooth (system)"
+    ((!DO_SDDM)) || item "Enable SDDM (takes effect on next boot)"
+    [[ -z "$LOGIN_SHELL" ]] || item "Change your login shell to $LOGIN_SHELL"
     ((!DRY_RUN)) || info "${C_WARN}dry run: nothing will be changed${C_RESET}"
     ask "Continue?" y || die "cancelled"
 }
@@ -340,14 +342,18 @@ enable_services() {
 setup_sddm() {
     ((DO_SDDM)) || return 0
     step "Display manager"
-    local current
-    current="$(readlink -f /etc/systemd/system/display-manager.service 2>/dev/null || true)"
-    if [[ -n "$current" && "$current" != *sddm.service ]]; then
+    local link=/etc/systemd/system/display-manager.service current=""
+    if [[ -L "$link" || -e "$link" ]]; then current="$(readlink -f "$link")"; fi
+    if [[ -n "$current" && "$current" != */sddm.service ]]; then
         warn "another display manager is enabled ($(basename "$current")): not switching"
         info "to switch: sudo systemctl disable $(basename "$current") && sudo systemctl enable sddm"
         return 0
     fi
-    run sudo systemctl enable sddm.service && ok "SDDM enabled; pick 'Hyprland' at the login screen"
+    if run sudo systemctl enable sddm.service; then
+        ok "SDDM enabled; pick 'Hyprland' at the login screen"
+    else
+        warn "could not enable sddm.service"
+    fi
 }
 
 setup_shell() {
@@ -358,7 +364,11 @@ setup_shell() {
     if [[ "$(getent passwd "$(id -un)" | cut -d: -f7)" == "$path" ]]; then
         ok "already using $LOGIN_SHELL"
     else
-        interactive chsh -s "$path" && ok "login shell is now $path (applies at next login)"
+        if interactive chsh -s "$path"; then
+            ok "login shell is now $path (applies at next login)"
+        else
+            warn "chsh failed; run 'chsh -s $path' yourself"
+        fi
     fi
 }
 
